@@ -1,0 +1,8 @@
+{
+    "name": "ThermalPrinter",
+    "version": "1.0.0",
+    "description": "Arduino Library for Small Thermal Printers",
+    "license": "MIT",
+    "frameworks": "*",
+    "platforms": "*"
+  }
