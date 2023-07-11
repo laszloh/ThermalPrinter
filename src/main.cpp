@@ -4,9 +4,6 @@
 
 ThermalPrinter printer(Serial2, 25, 26);
 
-extern const uint8_t aws_root_ca_pem_start[] asm("_binary_gebe_trademark_prn_start");
-extern const uint8_t aws_root_ca_pem_end[] asm("_binary_gebe_trademark_prn_end");
-
 void setup() {
     Serial.begin(115200);
     // Serial2.begin(115200, SERIAL_8N1, 25, 26);
