@@ -112,7 +112,7 @@ void ThermalPrinter::setFont(uint8_t f) {
 void ThermalPrinter::setCharSpacing(int spacing) {
     charSpacing = std::clamp<uint8_t>(spacing, 0, 15);
     writeBytes(true, commandChar, 'S', charSpacing);
-}   
+}
 
 
 void ThermalPrinter::feed(uint8_t lines) {
@@ -148,36 +148,34 @@ void ThermalPrinter::setCursor(uint16_t pxPos) { writeBytes(commandChar, 'N', (p
 std::pair<size_t, size_t> ThermalPrinter::getMaxSizeCode(BarcodeType t, size_t chars) {
     constexpr std::array<std::pair<uint8_t, uint8_t>, 8> sizes = {{{2, 5}, {2, 6}, {3, 7}, {4, 9}, {5, 12}, {6, 14}, {7, 16}, {8, 18}}};
 
+    auto lenLambda = +[](uint8_t narrow, uint8_t wide, size_t chars) -> size_t {
+        // this is the default mode (CODE39)
+        return 6 * wide + 14 * narrow + chars * (3 * wide + 7 * narrow);
+    };
+
     switch(t) {
-        case BarcodeType::CODE39: {
-            int idx = sizes.size();
-            for(auto it = sizes.rbegin(); it != sizes.rend(); it++, idx--) {
-                const auto [narrow, wide] = *it;
-                size_t len = 6 * wide + 14 * narrow + chars * (3 * wide + 7 * narrow);
-                if(len < pxLine)
-                    return std::make_pair(idx - 1, len);
-            }
-        } break;
-        case BarcodeType::ITF: {
-            int idx = sizes.size();
-            for(auto it = sizes.rbegin(); it != sizes.rend(); it++, idx--) {
-                const auto [narrow, wide] = *it;
-                size_t len = 1 * wide + 6 * narrow + chars * (2 * wide + 3 * narrow);
-                if(len < pxLine)
-                    return std::make_pair(idx - 1, len);
-            }
-        } break;
+        case BarcodeType::ITF:
+            lenLambda = +[](uint8_t narrow, uint8_t wide, size_t chars) -> size_t { return 1 * wide + 6 * narrow + chars * (2 * wide + 3 * narrow); };
+            break;
+
         case BarcodeType::EAN13:
-        case BarcodeType::EAN8: {
-            int idx = sizes.size();
-            for(auto it = sizes.rbegin(); it != sizes.rend(); it++, idx--) {
-                const auto [narrow, wide] = *it;
-                size_t len = 95 * narrow;
-                if(len < pxLine)
-                    return std::make_pair(idx - 1, len);
-            }
-        }
+        case BarcodeType::EAN8:
+            lenLambda = +[](uint8_t narrow, uint8_t wide, size_t chars) -> size_t { return 95 * narrow; };
+            break;
+
+        case BarcodeType::CODE39:
+        default:
+            break;
     }
+
+    int idx = sizes.size();
+    for(auto it = sizes.crbegin(); it != sizes.crend(); it++, idx--) {
+        const auto [narrow, wide] = *it;
+        size_t len = lenLambda(narrow, wide, chars);
+        if(len < pxLine)
+            return std::make_pair(idx - 1, len);
+    }
+
     return std::make_pair(0, pxLine);
 }
 
@@ -203,9 +201,6 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
     writeBytes(true, commandChar, 'm', 0);
     for(int y = -border; y < int(qrSize + border); y++) {
         // here we prints a module row
-        constexpr uint8_t lookup[16] = {
-            0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf,
-        };
         std::bitset<pxLine> rowBits(0);
         constexpr std::bitset<pxLine> mask(0xFF);
         int byteDelay = 0;
@@ -221,6 +216,9 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
             }
         }
 
+        constexpr uint8_t lookup[16] = {
+            0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf,
+        };
         for(int i = 0; i < sizeof(row); i++) {
             row[i] = static_cast<uint8_t>(((rowBits >> (8 * i)) & mask).to_ulong());
             row[i] = (lookup[row[i] & 0x0F] << 4) | lookup[row[i] >> 4];
