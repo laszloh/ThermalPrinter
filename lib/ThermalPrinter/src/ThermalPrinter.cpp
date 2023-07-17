@@ -37,7 +37,7 @@ void ThermalPrinter::reset() {
     upsideDown = false;
     fontIndex = 0;
     charSpacing = 0;
-    textPosition = TextAlign::left;
+    textPosition = Align::left;
     heightZoom = ZoomLevel::single;
     widthZoom = ZoomLevel::single;
 
@@ -89,7 +89,7 @@ void ThermalPrinter::setUpsideDown(bool on) {
     writeBytes(true, commandChar, 'D', (on) ? '1' : '0');
 }
 
-void ThermalPrinter::setTextPosition(TextAlign align) { }
+void ThermalPrinter::setTextPosition(Align align) { }
 
 void ThermalPrinter::setHeightZoom(ZoomLevel level) {
     heightZoom = level;
@@ -241,16 +241,29 @@ void ThermalPrinter::setBitmapCompression(BitmapCompression compression) {
     writeBytes(true, commandChar, 'm', val);
 }
 
-void ThermalPrinter::printBitmap(int width, int height, const uint8_t *bitmap) {
-    const size_t rowBytes = std::min(48, (width + 7) / 8);
+void ThermalPrinter::printBitmap(size_t width, size_t height, const uint8_t *bitmap) {
+    constexpr size_t maxRowBytes = 48;
+    const size_t rowBytes = std::min(maxRowBytes, (width + 7) / 8);
+    writeBytes(true, commandChar, 'm', to_underlying(BitmapCompression::uncompressed));
 
-    for(int i = 0; i < height; i++) {
-        writeBytes(false, commandChar, 'g', rowBytes);
+    for(size_t i = 0; i < height; i++) {
+        writeBytes(false, commandChar, 'g', maxRowBytes);
         Print::write(bitmap + i * rowBytes, rowBytes);
+        // print remaining bytes until the end of the line
+        for(size_t j = rowBytes; j < maxRowBytes; j++)
+            Print::write(uint8_t(0x00));
         timeoutWait();
         // move head to the next line
     }
 }
 
+template <size_t N> void ThermalPrinter::printTiff(const tiffRaw<N> *tiff) {
+    writeBytes(true, commandChar, 'm', to_underlying(BitmapCompression::tiff));
 
-void ThermalPrinter::printTestPage() { }
+    for(auto it = tiff->rowData.cbegin(); it != tiff->rowData.cend(); it++) {
+        const auto [offset, len] = *it;
+        writeBytes(false, commandChar, 'g', len);
+        Print::write(tiff->data + offset, len);
+        timeoutWait();
+    }
+}

@@ -12,11 +12,14 @@ public:
         EAN8 = 'D',
     };
 
-    enum class BitmapCompression : uint8_t { uncompressed = 0, runLength, tiff, deltaRow };
+    template <size_t rCount> struct tiffRaw {
+        std::array<std::pair<size_t,size_t>, rCount> rowData;
+        const uint8_t *data;
+    };
 
     enum class ZoomLevel : uint8_t { single = 0, twice, fourfold, eightfold };
 
-    enum class TextAlign : uint8_t { left = 0, centered, right };
+    enum class Align : uint8_t { left = 0, centered, right };
 
 public:
     ThermalPrinter(HardwareSerial &s = Serial2, int8_t rx = -1, int8_t tx = -1) : output{s} { output.begin(115200, SERIAL_8N1, rx, tx); }
@@ -38,8 +41,8 @@ public:
     void setUpsideDown(bool on);
     bool isUpsideDown() const { return upsideDown; }
 
-    void setTextPosition(TextAlign align);
-    TextAlign getTextPosition() const { return textPosition; }
+    void setTextPosition(Align align);
+    Align getTextPosition() const { return textPosition; }
 
     void setHeightZoom(ZoomLevel level);
     ZoomLevel getHeightZoom() const { return heightZoom; }
@@ -48,10 +51,10 @@ public:
     ZoomLevel getWidthZoom() const { return widthZoom; }
 
     void setFont(uint8_t f);
-    uint8_t getFont() const {return fontIndex;}
+    uint8_t getFont() const { return fontIndex; }
 
     void setCharSpacing(int spacing = 0);
-    uint8_t getCharSpacing() const {return charSpacing;}
+    uint8_t getCharSpacing() const { return charSpacing; }
 
     void printTextSuperPosition(const char *text);
 
@@ -79,10 +82,9 @@ public:
 
     void printQrCode(const String text, int zoom = -1) { printQrCode(text.c_str(), zoom); }
 
-    void setBitmapCompression(BitmapCompression compression);
-    BitmapCompression getBitmapCompression() const { return compression; }
+    void printBitmap(size_t width, size_t height, const uint8_t *bitmap);
 
-    void printBitmap(int width, int height, const uint8_t *bitmap);
+    template <size_t N> void printTiff(const tiffRaw<N> *tiff);
 
     void reset();
 
@@ -98,7 +100,7 @@ public:
 
     void clearBuffer() { writeBytes(commandChar, 'A'); }
 
-    void printTestPage();
+    // void printTestPage();
 
     // bool hasPaper();
 
@@ -117,14 +119,14 @@ private:
     bool upsideDown{false};
     uint8_t fontIndex{0};
     uint8_t charSpacing{0};
-    TextAlign textPosition{TextAlign::left};
+    Align textPosition{Align::left};
     ZoomLevel heightZoom{ZoomLevel::single};
     ZoomLevel widthZoom{ZoomLevel::single};
 
     uint16_t barcodeHeight{100};
     bool barcodeWithText{true};
 
-    BitmapCompression compression{BitmapCompression::uncompressed};
+    enum class BitmapCompression : uint8_t { uncompressed = 0, runLength, tiff, deltaRow };
 
     size_t column{0};
     size_t maxColumn{48};
