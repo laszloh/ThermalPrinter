@@ -2,6 +2,8 @@
 #include <ThermalPrinter.h>
 #include <esp32-hal-log.h>
 
+#include "images.h"
+
 ThermalPrinter printer(Serial2, 25, 26);
 
 void setup() {
@@ -24,12 +26,14 @@ void setup() {
 
     printer.begin();
 
-    // printer.println("Hello World");
+    printer.println("Hello World");
     // // // printer.printBinaryFile(aws_root_ca_pem_start, aws_root_ca_pem_end-aws_root_ca_pem_start);
-    // printer.printBarcode("123ABC", ThermalPrinter::BarcodeType::CODE39);
-    // printer.feed(3);
+    printer.printBarcode("123ABC", ThermalPrinter::BarcodeType::CODE39);
+    printer.feed(3);
 
-    // printer.printQrCode("Hello World", 8);
+    printer.printQrCode("Hello World", 8);
+
+    printer.printTiff(test_tiff);
 
     // printer.println("Font test:");
     // uint8_t i = 4;

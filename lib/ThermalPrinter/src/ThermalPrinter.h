@@ -13,7 +13,7 @@ public:
     };
 
     template <size_t rCount> struct tiffRaw {
-        std::array<std::pair<size_t,size_t>, rCount> rowData;
+        std::array<size_t, rCount> rowData;
         const uint8_t *data;
     };
 
@@ -84,7 +84,18 @@ public:
 
     void printBitmap(size_t width, size_t height, const uint8_t *bitmap);
 
-    template <size_t N> void printTiff(const tiffRaw<N> *tiff);
+    template <size_t N> void printTiff(const tiffRaw<N> &tiff) {
+        writeBytes(true, commandChar, 'm', to_underlying(BitmapCompression::tiff));
+
+        size_t offset = 0;
+        for(auto it = tiff.rowData.cbegin(); it != tiff.rowData.cend(); it++) {
+            const auto len = *it;
+            writeBytes(false, commandChar, 'g', len);
+            Print::write(tiff.data + offset, len);
+            timeoutWait();
+            offset += len;
+        }
+    }
 
     void reset();
 

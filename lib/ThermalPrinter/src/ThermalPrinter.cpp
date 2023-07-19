@@ -235,11 +235,11 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
     }
 }
 
-void ThermalPrinter::setBitmapCompression(BitmapCompression compression) {
-    this->compression = compression;
-    const uint8_t val = to_underlying(compression);
-    writeBytes(true, commandChar, 'm', val);
-}
+// void ThermalPrinter::setBitmapCompression(BitmapCompression compression) {
+//     this->compression = compression;
+//     const uint8_t val = to_underlying(compression);
+//     writeBytes(true, commandChar, 'm', val);
+// }
 
 void ThermalPrinter::printBitmap(size_t width, size_t height, const uint8_t *bitmap) {
     constexpr size_t maxRowBytes = 48;
@@ -254,16 +254,5 @@ void ThermalPrinter::printBitmap(size_t width, size_t height, const uint8_t *bit
             Print::write(uint8_t(0x00));
         timeoutWait();
         // move head to the next line
-    }
-}
-
-template <size_t N> void ThermalPrinter::printTiff(const tiffRaw<N> *tiff) {
-    writeBytes(true, commandChar, 'm', to_underlying(BitmapCompression::tiff));
-
-    for(auto it = tiff->rowData.cbegin(); it != tiff->rowData.cend(); it++) {
-        const auto [offset, len] = *it;
-        writeBytes(false, commandChar, 'g', len);
-        Print::write(tiff->data + offset, len);
-        timeoutWait();
     }
 }
