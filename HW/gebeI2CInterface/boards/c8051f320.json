@@ -1,0 +1,22 @@
+{
+  "build": {
+    "core": "naked",
+    "extra_flags": "-DC8051F320 -DNAKED_ARCH_MCS51 -DNAKED_MCS51_C8051F320",
+    "f_cpu": "12000000L",
+    "size_iram": 256,
+    "size_xram": 1024,
+    "size_code": 15872,
+    "size_heap": 128,
+    "mcu": "c8051f32x",
+    "cpu": "mcs51",
+    "variante": "c8051f320"
+  },
+  "frameworks": [],
+  "upload": {
+    "maximum_ram_size": 1024,
+    "maximum_size": 15872
+  },
+  "name": "C8051F32x",
+  "url": "https://en.wikipedia.org/wiki/Intel_8051",
+  "vendor": "Intel & Licensees"
+}
