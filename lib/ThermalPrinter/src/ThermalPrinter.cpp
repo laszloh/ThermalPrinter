@@ -183,11 +183,14 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
     constexpr QrCode::Ecc eccLvl = QrCode::Ecc::ECC_LOW;
 
     const QrCode qr = QrCode::encodeText(text, eccLvl);
+    printQrCode(qr, zoom);
+}
+
+void ThermalPrinter::printQrCode(const qrcodegen::QrCode &qrCode, int zoom) {
+    constexpr uint8_t border = 4;
     const size_t qrSize = qr.getSize();
 
-    constexpr uint8_t border = 4;
-
-    if(zoom < 2) {
+    if(zoom == -1) {
         zoom = pxLine / (2 * border + qrSize);
     } else if((2 * border + qrSize) * zoom > pxLine) {
         log_e("QR code too big");
@@ -206,7 +209,7 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
         int byteDelay = 0;
         uint8_t row[pxLine / 8];
 
-        for(int i = 0; i < qrSize + 2 * border; i++) {
+        for(size_t i = 0; i < qrSize + 2 * border; i++) {
             if(qr.getModule(i - border, y)) {
                 const int firstIdx = pxOffset + (i * zoom);
                 byteDelay++;
@@ -219,12 +222,12 @@ void ThermalPrinter::printQrCode(const char *text, int zoom) {
         constexpr uint8_t lookup[16] = {
             0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf,
         };
-        for(int i = 0; i < sizeof(row); i++) {
-            row[i] = static_cast<uint8_t>(((rowBits >> (8 * i)) & mask).to_ulong());
-            row[i] = (lookup[row[i] & 0x0F] << 4) | lookup[row[i] >> 4];
+        for(size_t i = 0; i < sizeof(row); i++) {
+            const auto val = static_cast<uint8_t>(((rowBits >> (8 * i)) & mask).to_ulong());
+            row[i] = (lookup[val & 0x0F] << 4) | lookup[val >> 4];
         }
 
-        for(int i = 0; i < zoom; i++) {
+        for(size_t i = 0; i < zoom; i++) {
             writeBytes(false, commandChar, 'g', sizeof(row));
             delayMicroseconds(10);
             output.write(row, sizeof(row));

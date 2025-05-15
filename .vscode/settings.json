@@ -49,5 +49,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "bitset": "cpp"
-    }
+    },
+    "python.analysis.typeCheckingMode": "basic"
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-
+#include "QrCodeGen.hpp"
 
 class ThermalPrinter : public Print {
 public:
@@ -81,6 +81,8 @@ public:
     void printQrCode(const char *text, int zoom = -1);
 
     void printQrCode(const String text, int zoom = -1) { printQrCode(text.c_str(), zoom); }
+
+    void printQrCode( const qrcodegen::QrCode &qrCode, int zoom = -1);
 
     void printBitmap(size_t width, size_t height, const uint8_t *bitmap);
 
