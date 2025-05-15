@@ -27,7 +27,7 @@
    user will not be informed about decreased resolution.
 
  */
-void _delay_ms(uint32_t __ms)
+inline void _delay_ms(uint32_t __ms)
 {
     const uint32_t __tmp = ((F_CPU) / 4e3) * __ms;
     uint16_t __ticks;
@@ -64,7 +64,7 @@ void _delay_ms(uint32_t __ms)
    _delay_us() will automatically call _delay_ms() instead.  The user
    will not be informed about this case.
  */
-void _delay_us(uint32_t __us)
+inline void _delay_us(uint32_t __us)
 {
     const uint16_t __tmp = ((F_CPU) / 3e6) * __us;
     const uint32_t __tmp2 = ((F_CPU) / 4e6) * __us;

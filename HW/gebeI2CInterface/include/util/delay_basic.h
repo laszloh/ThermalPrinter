@@ -14,7 +14,7 @@
     Thus, at a CPU speed of 1 MHz, delays of up to 768 microseconds
     can be achieved.
 */
-void _delay_loop_1(uint8_t __count)
+inline void _delay_loop_1(uint8_t __count)
 {
     (void)__count;
     __asm 
@@ -35,7 +35,7 @@ void _delay_loop_1(uint8_t __count)
     Thus, at a CPU speed of 1 MHz, delays of up to about 262.1
     milliseconds can be achieved.
  */
-void _delay_loop_2(uint16_t __count)
+inline void _delay_loop_2(uint16_t __count)
 {
     (void)__count;
     __asm
